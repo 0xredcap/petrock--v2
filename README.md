@@ -1,5 +1,9 @@
 # Pet Rock
 
+> **Live demo:** [paste-your-deployed-url-here]
+
+![Pet Rock](docs/screenshot.png)
+
 Pet Rock is an on-chain Tamagotchi where you raise a pixel-art rock that lives on the Hedera network. Adopt it, feed it, play with it, groom it — or neglect it long enough and watch the NFT burn, publicly, on-chain, with a tombstone. No logins. No wallets. Just you, your rock, and the blockchain.
 
 ---
@@ -26,7 +30,7 @@ graph TD
 
 - **MPP commerce layer** — pet-action API routes are gated behind HTTP 402 payment challenges via [`mppx`](https://github.com/BitteProtocol/mppx). The agent handles 402 challenges automatically using a Tempo testnet account. This is the pay-per-call transport layer; the Hedera transaction is what permanently records the action.
 
-Pet Rock uses a treasury-signing model where the agent pays transaction fees on the user's behalf, with HBAR-equivalent charges flowing through the MPP layer. A wallet-connect path is planned but not yet wired in — the design is built to accommodate it cleanly.
+Pet Rock uses a treasury-signing model where the agent pays transaction fees on the user's behalf, with HBAR-equivalent charges flowing through the MPP layer. HashPack wallet-connect is wired in for explicit user signing of HBAR payments — the treasury handles NFT minting and all HCS submissions.
 
 ---
 
