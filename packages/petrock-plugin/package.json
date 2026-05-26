@@ -1,0 +1,26 @@
+{
+  "name": "@petrock/hedera-agent-kit-plugin",
+  "version": "0.1.0",
+  "description": "Hedera Agent Kit plugin for Pet Rock — pet care primitives on HCS/HTS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.81.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "hedera-agent-kit": "^3.8.2"
+  },
+  "peerDependenciesMeta": {
+    "hedera-agent-kit": {
+      "optional": true
+    }
+  }
+}
