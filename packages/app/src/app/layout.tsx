@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
+import { WalletProvider } from "@/lib/wallet/wallet-connect";
 import "./globals.css";
 
 const geistMono = Geist_Mono({
@@ -19,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistMono.variable} h-full`}>
-      <body className="h-full overflow-hidden">{children}</body>
+      <body className="h-full overflow-hidden">
+        <WalletProvider>{children}</WalletProvider>
+      </body>
     </html>
   );
 }
