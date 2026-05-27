@@ -1,5 +1,5 @@
 {
-  "name": "pet-rock",
+  "name": "@petrock/app",
   "version": "0.1.0",
   "private": true,
   "description": "An on-chain Tamagotchi. Raise a pixel-art rock that lives on Hedera.",
@@ -12,11 +12,14 @@
     "setup:assets": "curl -L -o /tmp/kenney.zip \"https://www.kenney.nl/media/pages/assets/pixel-platformer/33bb4921eb-1696667883/kenney_pixel-platformer.zip\" && unzip -o /tmp/kenney.zip -d /tmp/kenney/ && mkdir -p public/assets/kenney && cp -r /tmp/kenney/*/Tiles public/assets/kenney/ && cp -r /tmp/kenney/*/Characters public/assets/kenney/ && echo \"Kenney assets installed.\""
   },
   "dependencies": {
+    "@hashgraph/hedera-wallet-connect": "^2.1.3",
     "@hashgraph/sdk": "^2.81.0",
     "@langchain/core": "^1.1.48",
     "@langchain/google-genai": "^2.1.31",
     "@netlify/plugin-nextjs": "^5.15.11",
+    "@petrock/hedera-agent-kit-plugin": "*",
     "@pixi/react": "^8.0.5",
+    "coincap-hedera-plugin": "^1.0.4",
     "hedera-agent-kit": "^3.8.2",
     "langchain": "^1.4.2",
     "mppx": "^0.6.28",

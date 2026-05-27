@@ -9,6 +9,7 @@ export interface PetMessage {
   action: string;
   serial?: number;
   name?: string;
+  petTopicId?: string;
   hunger?: number;
   mood?: number;
   energy?: number;
@@ -78,11 +79,8 @@ export async function submitRegistryMessage(
     action: "adopted",
     serial,
     name,
+    petTopicId: topicId,
     born_at: new Date().toISOString(),
-    // store the per-pet topicId inside the message for lookup
-    ...(({ topicId: _topicId }: { topicId: string }) => ({ petTopicId: _topicId }))(
-      { topicId }
-    ),
   });
 }
 
