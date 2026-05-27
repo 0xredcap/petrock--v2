@@ -3,6 +3,15 @@
 import { useEffect, useRef } from "react";
 import type { PetStats } from "@/lib/hedera/stats";
 
+interface GentleViewport {
+  bg: number[][];
+  overlay: number[][];
+  tiledim: number;
+  tilesetpxw: number;
+  tilesPerRow: number;
+  transparent: number;
+}
+
 const TILE_SIZE = 18;
 const TILE_SCALE = 3;
 const COLS = 16;
@@ -11,7 +20,7 @@ const CANVAS_W = COLS * TILE_SIZE * TILE_SCALE;
 const CANVAS_H = ROWS * TILE_SIZE * TILE_SCALE;
 const TS = TILE_SIZE * TILE_SCALE; // pixels per tile
 
-const PET_HOME = { col: 7, row: 5 };
+const PET_HOME = { col: 13, row: 5 };
 
 // AI Town 32x32folk.png layout: 4 chars wide × 2 rows, each char 96×128px
 // Within each char block: row0=down, row1=left, row2=right, row3=up, 3 frames each
@@ -56,9 +65,8 @@ function randomBetween(min: number, max: number) {
 }
 
 function isWalkable(col: number, row: number): boolean {
-  if (col < 1 || col > 14 || row < 1 || row > 8) return false;
-  const trees: [number, number][] = [[1, 1], [14, 1], [1, 7], [14, 7]];
-  return !trees.some(([tc, tr]) => tc === col && tr === row);
+  // Cols 0-3 are the dense forest wall; cols 4-15, rows 1-8 are open
+  return col >= 4 && col <= 15 && row >= 1 && row <= 8;
 }
 
 function randomWalkableNeighbor(col: number, row: number) {
@@ -103,7 +111,7 @@ export default function World({ serial, stats, reaction, onReactionDone }: World
         canvas: canvasRef.current,
         width: CANVAS_W,
         height: CANVAS_H,
-        backgroundColor: GRASS_COLOR,
+        backgroundColor: 0x4a8f2a,
         antialias: false,
         resolution: 1,
       });
@@ -112,17 +120,28 @@ export default function World({ serial, stats, reaction, onReactionDone }: World
 
       const worldContainer = new PIXI.Container();
       app.stage.addChild(worldContainer);
-      drawGarden(PIXI, worldContainer);
 
-      // ── Pet sprite (AI Town character) ──────────────────────────────
+      // ── Load tileset + character spritesheet in parallel ───────────
+      let tilesetSource: import("pixi.js").TextureSource | null = null;
+      let tilemapData: GentleViewport | null = null;
       let spriteSource: import("pixi.js").TextureSource | null = null;
-      try {
-        const tex = await PIXI.Assets.load<import("pixi.js").Texture>(
-          "/assets/ai-town/characters/32x32folk.png"
-        );
-        spriteSource = tex.source;
-      } catch {
-        spriteSource = null;
+
+      await Promise.allSettled([
+        PIXI.Assets.load<import("pixi.js").Texture>("/assets/ai-town/maps/gentle-obj.png")
+          .then((t) => { tilesetSource = t.source; }),
+        fetch("/assets/ai-town/maps/gentle-viewport.json")
+          .then((r) => r.json() as Promise<GentleViewport>)
+          .then((d) => { tilemapData = d; }),
+        PIXI.Assets.load<import("pixi.js").Texture>("/assets/ai-town/characters/32x32folk.png")
+          .then((t) => { spriteSource = t.source; }),
+      ]);
+
+      if (!mounted) { app.destroy(false, { children: true }); return; }
+
+      if (tilesetSource && tilemapData) {
+        renderTilemap(PIXI, worldContainer, tilesetSource, tilemapData);
+      } else {
+        drawGarden(PIXI, worldContainer);
       }
 
       const charIndex = (serial ?? 0) % NUM_CHARACTERS;
@@ -392,7 +411,44 @@ export default function World({ serial, stats, reaction, onReactionDone }: World
   );
 }
 
-// ─── Garden drawing ─────────────────────────────────────────────────────────
+// ─── Forest tilemap renderer ─────────────────────────────────────────────────
+
+function renderTilemap(
+  PIXI: typeof import("pixi.js"),
+  container: import("pixi.js").Container,
+  tilesetSource: import("pixi.js").TextureSource,
+  data: GentleViewport,
+) {
+  const { bg, overlay, tiledim, tilesPerRow } = data;
+  const scale = TS / tiledim;
+
+  for (let pass = 0; pass < 2; pass++) {
+    const layer = pass === 0 ? bg : overlay;
+    const emptyVal = pass === 0 ? data.transparent : -1;
+
+    for (let row = 0; row < layer.length; row++) {
+      for (let col = 0; col < layer[row].length; col++) {
+        const tileIdx = layer[row][col];
+        if (tileIdx === emptyVal || tileIdx < 0) continue;
+
+        const srcX = (tileIdx % tilesPerRow) * tiledim;
+        const srcY = Math.floor(tileIdx / tilesPerRow) * tiledim;
+
+        const tex = new PIXI.Texture({
+          source: tilesetSource,
+          frame: new PIXI.Rectangle(srcX, srcY, tiledim, tiledim),
+        });
+        const sprite = new PIXI.Sprite(tex);
+        sprite.x = col * TS;
+        sprite.y = row * TS;
+        sprite.scale.set(scale);
+        container.addChild(sprite);
+      }
+    }
+  }
+}
+
+// ─── Garden drawing (fallback) ───────────────────────────────────────────────
 
 function drawGarden(PIXI: typeof import("pixi.js"), container: import("pixi.js").Container) {
   const g = new PIXI.Graphics();
