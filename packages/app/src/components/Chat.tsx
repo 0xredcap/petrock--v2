@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import type { ReactionType } from "./World";
+import { formatHbarWithUsd } from "@/lib/format";
 
 interface Message {
   role: "human" | "ai";
@@ -14,6 +15,7 @@ interface ChatProps {
   onReaction?: (type: ReactionType) => void;
   onPetAdopted?: (serial: number, topicId: string) => void;
   onActivityLog?: (entry: ActivityEntry) => void;
+  hbarPrice?: number | null;
 }
 
 export interface ActivityEntry {
@@ -77,7 +79,7 @@ const colorMap: Record<ActionColor, string> = {
 
 const btnBase = "px-2 py-2 border-2 text-xs font-mono rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 
-export default function Chat({ serial, topicId, onReaction, onPetAdopted, onActivityLog }: ChatProps) {
+export default function Chat({ serial, topicId, onReaction, onPetAdopted, onActivityLog, hbarPrice }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "ai",
@@ -263,7 +265,12 @@ export default function Chat({ serial, topicId, onReaction, onPetAdopted, onActi
                 onClick={() => sendDirectAction(action.endpoint, action.label, action.reaction, action.successMsg)}
                 className={`${btnBase} ${colorMap[action.color as ActionColor]}`}
               >
-                {action.label}
+                <div>{action.label}</div>
+                {action.label !== "Sleep" && (
+                  <div className="text-xs opacity-70">
+                    {formatHbarWithUsd(0.5, hbarPrice ?? null)}
+                  </div>
+                )}
               </button>
             ))}
             <button
@@ -280,7 +287,7 @@ export default function Chat({ serial, topicId, onReaction, onPetAdopted, onActi
             onClick={adoptDirectly}
             className={`${btnBase} w-full bg-emerald-700 border-emerald-500 text-white hover:bg-emerald-600`}
           >
-            {loading ? "Adopting..." : "ADOPT A PET ROCK"}
+            {loading ? "Adopting..." : `ADOPT A PET ROCK — ${formatHbarWithUsd(1, hbarPrice ?? null)}`}
           </button>
         )}
 
