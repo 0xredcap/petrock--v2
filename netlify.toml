@@ -1,12 +1,12 @@
 [build]
-  command = "npm run build"
-  publish = ".next"
+  command = "npm run build --workspace=@petrock/app"
+  publish = "packages/app/.next"
 
 [build.environment]
   NODE_VERSION = "20"
 
 [functions]
-  included_files = ["public/**"]
+  included_files = ["packages/app/public/**"]
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
